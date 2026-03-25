@@ -26,15 +26,34 @@ Self-hosted cross-platform messenger for family and friends. Run it on your note
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Java 21+ (for local development)
-- Flutter 3.x (for frontend development)
+- **Java 21+** — `java -version` must show 21.x ([SDKMAN](https://sdkman.io/) recommended)
+- **Docker & Docker Compose** — for PostgreSQL + TURN server
+- **Flutter 3.x** — for frontend development (needed later)
 
-### Run with Docker
+### First-Time Setup
 
 ```bash
-cd docker
-docker-compose up -d
+./scripts/check-prereqs.sh      # 1. verify tools installed
+./scripts/init-project.sh       # 2. generate gradle wrapper, local config
+./scripts/start-infra.sh        # 3. start PostgreSQL + coturn
+./scripts/start-backend.sh      # 4. run the API
+./scripts/seed-test-users.sh    # 5. create alice & bob test accounts
+```
+
+> **See [`scripts/INITREADME.md`](scripts/INITREADME.md) for detailed docs on every script, environment variables, and troubleshooting.**
+
+### Daily Development
+
+```bash
+./scripts/start-infra.sh        # if Docker containers aren't running
+./scripts/start-backend.sh      # start the API
+```
+
+### Shut Down
+
+```bash
+./scripts/stop-all.sh           # stop containers, keep data
+./scripts/stop-all.sh --clean   # stop containers + wipe database
 ```
 
 This starts:
@@ -42,7 +61,7 @@ This starts:
 - **PostgreSQL** at `localhost:5432`
 - **TURN server** at `localhost:3478`
 
-### Local Development (Backend)
+### Manual Setup (without scripts)
 
 ```bash
 # Start just the database
