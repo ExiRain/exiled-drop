@@ -101,7 +101,7 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
         List<UUID> participantIds = conversationRepository.findParticipantIds(conversationId);
         for (UUID pid : participantIds) {
             if (!pid.equals(senderId) && !presenceTracker.isOnline(pid)) {
-                pushService.sendMessageNotification(pid, senderName, content);
+                pushService.sendMessageNotification(pid, senderName, content, conversationId, senderId);
             }
         }
     }
@@ -119,7 +119,7 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
         sendToUser(targetId, new CallOfferDelivery(senderId, senderName, sdp, callType));
 
         if (!presenceTracker.isOnline(targetId)) {
-            pushService.sendCallNotification(targetId, senderName, callType);
+            pushService.sendCallNotification(targetId, senderId, senderName, callType);
         }
     }
 

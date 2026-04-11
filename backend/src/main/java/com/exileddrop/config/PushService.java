@@ -18,7 +18,8 @@ public class PushService {
 
     private final DeviceTokenRepository deviceTokenRepository;
 
-    public void sendMessageNotification(UUID recipientId, String senderName, String content) {
+    public void sendMessageNotification(UUID recipientId, String senderName, String content,
+                                        UUID conversationId, UUID senderId) {
         if (FirebaseApp.getApps().isEmpty()) {
             log.warn("Firebase not initialized, skipping push");
             return;
@@ -37,12 +38,13 @@ public class PushService {
                                 .build())
                         .putData("type", "chat.message")
                         .putData("senderName", senderName)
+                        .putData("senderId", senderId.toString())
+                        .putData("conversationId", conversationId.toString())
                         .build();
 
                 FirebaseMessaging.getInstance().send(message);
             } catch (Exception e) {
                 log.error("Failed to send push to {}: {}", device.getFcmToken(), e.getMessage());
-                // Remove invalid tokens
                 if (e.getMessage() != null && e.getMessage().contains("not a valid FCM registration token")) {
                     deviceTokenRepository.delete(device);
                 }
@@ -50,7 +52,7 @@ public class PushService {
         });
     }
 
-    public void sendCallNotification(UUID recipientId, String callerName, String callType) {
+    public void sendCallNotification(UUID recipientId, UUID callerId, String callerName, String callType) {
         if (FirebaseApp.getApps().isEmpty()) return;
 
         deviceTokenRepository.findByUserId(recipientId).forEach(device -> {
@@ -62,6 +64,7 @@ public class PushService {
                                 .setBody(callerName + " is calling...")
                                 .build())
                         .putData("type", "call.offer")
+                        .putData("callerId", callerId.toString())
                         .putData("callerName", callerName)
                         .putData("callType", callType)
                         .build();
