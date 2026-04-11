@@ -1,0 +1,8 @@
+CREATE TABLE message_reads (
+                               message_id      UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+                               user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                               read_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+                               PRIMARY KEY (message_id, user_id)
+);
+
+CREATE INDEX idx_message_reads_user ON message_reads (user_id);

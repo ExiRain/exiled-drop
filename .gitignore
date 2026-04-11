@@ -1,0 +1,57 @@
+# ── Java / Gradle ──
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+
+# ── IDE ──
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ── Flutter / Dart ──
+frontend/.dart_tool/
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/*.iml
+*.lock
+
+# ── Docker ──
+docker/.env
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Environment ──
+.env
+.env.local
+.env.*.local
+
+# ── Local dev config ──
+application-local.propertiesbackend/src/main/resources/firebase-adminsdk.json
+firebase-service-account.json
+backend/src/main/resources/firebase-*.json

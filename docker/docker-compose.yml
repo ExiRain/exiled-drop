@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # ── PostgreSQL ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: exiled-postgres
+    environment:
+      POSTGRES_DB: exileddrop
+      POSTGRES_USER: exileddrop
+      POSTGRES_PASSWORD: exileddrop_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exileddrop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Spring Boot Backend ──
+  api:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: exiled-api
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── TURN Server (for WebRTC NAT traversal) ──
+  coturn:
+    image: coturn/coturn:latest
+    container_name: exiled-coturn
+    ports:
+      - "3478:3478"        # STUN/TURN UDP
+      - "3478:3478/udp"
+      - "5349:5349"        # STUN/TURN TLS
+      - "5349:5349/udp"
+      - "49152-49200:49152-49200/udp"  # relay ports
+    command: >
+      -n
+      --log-file=stdout
+      --lt-cred-mech
+      --fingerprint
+      --realm=exileddrop
+      --user=exileddrop:turnpassword
+      --min-port=49152
+      --max-port=49200
+      --no-cli
+
+volumes:
+  postgres_data:
