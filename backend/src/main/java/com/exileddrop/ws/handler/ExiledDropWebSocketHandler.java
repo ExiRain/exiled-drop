@@ -28,6 +28,7 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
     private final ChatService chatService;
     private final ConversationRepository conversationRepository;
     private final PushService pushService;
+    private final PendingCallTracker pendingCallTracker;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -38,6 +39,15 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
         log.info("User connected: {} ({})", username, userId);
 
         broadcastPresence(userId, username, "ONLINE");
+        var pendingCall = pendingCallTracker.consumePending(userId);
+        if (pendingCall != null && presenceTracker.isOnline(pendingCall.getCallerId())) {
+            sendToUser(userId, new CallOfferDelivery(
+                    pendingCall.getCallerId(),
+                    pendingCall.getCallerName(),
+                    pendingCall.getSdp(),
+                    pendingCall.getCallType()
+            ));
+        }
     }
 
     @Override
@@ -120,6 +130,7 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
 
         if (!presenceTracker.isOnline(targetId)) {
             pushService.sendCallNotification(targetId, senderId, senderName, callType);
+            pendingCallTracker.setPending(targetId, senderId, senderName, sdp, callType);
         }
     }
 
@@ -184,11 +195,13 @@ public class ExiledDropWebSocketHandler extends TextWebSocketHandler {
     private void handleCallHangup(UUID senderId, JsonNode root) {
         UUID targetId = UUID.fromString(root.path("targetUserId").asText());
         sendToUser(targetId, new CallHangupDelivery(senderId));
+        pendingCallTracker.cancelByCallerId(senderId);
     }
 
     private void handleCallReject(UUID senderId, JsonNode root) {
         UUID targetId = UUID.fromString(root.path("targetUserId").asText());
         sendToUser(targetId, new CallRejectDelivery(senderId));
+        pendingCallTracker.cancelPending(senderId);
     }
 
     // ── Helpers ──
